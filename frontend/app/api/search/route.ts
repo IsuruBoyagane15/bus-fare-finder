@@ -1,25 +1,35 @@
 import { NextResponse } from "next/server"
+import { BusType } from "@/lib/types"
+
+interface RouteResult {
+  id: number;
+  route: string;
+  [BusType.LUXURY]?: number;
+  [BusType.SEMI_LUXURY]?: number;
+  [BusType.EXPRESSWAY]?: number;
+  [BusType.AC]?: number;
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const startingCity = searchParams.get("startingCity")
   const endingCity = searchParams.get("endingCity")
   const busRoute = searchParams.get("busRoute")
-  const busTypes = searchParams.get("busTypes")?.split(",") || []
+  const busTypes = searchParams.get("busTypes")?.split(",") as BusType[] || []
 
   // Simulate a database search
-  const routes = [
-    { id: 1, route: "Colombo - Kandy", luxury: 1000, semiLuxury: 800, expressway: 1200, ac: 1500 },
-    { id: 2, route: "Colombo - Galle", luxury: 800, semiLuxury: 600, expressway: 1000, ac: 1200 },
-    { id: 3, route: "Kandy - Nuwara Eliya", luxury: 600, semiLuxury: 500, expressway: null, ac: 800 },
-    { id: 4, route: "Colombo - Jaffna", luxury: 2000, semiLuxury: 1800, expressway: 2500, ac: 2800 },
-    { id: 5, route: "Galle - Matara", luxury: 300, semiLuxury: 250, expressway: null, ac: 400 },
+  const routes: RouteResult[] = [
+    { id: 1, route: "Colombo - Kandy", [BusType.LUXURY]: 1000, [BusType.SEMI_LUXURY]: 800, [BusType.EXPRESSWAY]: 1200, [BusType.AC]: 1500 },
+    { id: 2, route: "Colombo - Galle", [BusType.LUXURY]: 800, [BusType.SEMI_LUXURY]: 600, [BusType.EXPRESSWAY]: 1000, [BusType.AC]: 1200 },
+    { id: 3, route: "Kandy - Nuwara Eliya", [BusType.LUXURY]: 600, [BusType.SEMI_LUXURY]: 500, [BusType.AC]: 800 },
+    { id: 4, route: "Colombo - Jaffna", [BusType.LUXURY]: 2000, [BusType.SEMI_LUXURY]: 1800, [BusType.EXPRESSWAY]: 2500, [BusType.AC]: 2800 },
+    { id: 5, route: "Galle - Matara", [BusType.LUXURY]: 300, [BusType.SEMI_LUXURY]: 250, [BusType.AC]: 400 },
   ]
 
   const results = routes.filter((route) => {
     const matchesRoute = route.route.toLowerCase().includes(`${startingCity} - ${endingCity}`.toLowerCase())
     const matchesBusRoute = !busRoute || route.route.toLowerCase().includes(busRoute.toLowerCase())
-    const matchesBusTypes = busTypes.length === 0 || busTypes.some((type) => route[type] !== null)
+    const matchesBusTypes = busTypes.length === 0 || busTypes.some((type) => route[type] !== undefined)
     return matchesRoute && matchesBusRoute && matchesBusTypes
   })
 

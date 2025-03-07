@@ -1,89 +1,103 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2 } from "lucide-react"
 import Select from "react-select"
+import { BusType, BusTypeLabels } from "@/lib/types"
+import { api } from "@/lib/api"
+import { toast } from "sonner"
 
-const busTypes = [
-  { id: "luxury", label: "Luxury" },
-  { id: "semi-luxury", label: "Semi-Luxury" },
-  { id: "expressway", label: "Expressway" },
-  { id: "ac", label: "AC" },
-]
-
-const sampleRoutes = [
-  { value: "Colombo-Kandy", label: "Colombo - Kandy" },
-  { value: "Colombo-Galle", label: "Colombo - Galle" },
-  { value: "Kandy-Nuwara Eliya", label: "Kandy - Nuwara Eliya" },
-  { value: "Colombo-Jaffna", label: "Colombo - Jaffna" },
-  { value: "Galle-Matara", label: "Galle - Matara" },
-]
-
-const sampleCities = {
-  "Colombo-Kandy": ["Colombo", "Kadawatha", "Warakapola", "Kegalle", "Mawanella", "Kadugannawa", "Kandy"],
-  "Colombo-Galle": ["Colombo", "Panadura", "Kalutara", "Beruwala", "Aluthgama", "Hikkaduwa", "Galle"],
-  "Kandy-Nuwara Eliya": ["Kandy", "Peradeniya", "Gampola", "Nawalapitiya", "Hatton", "Nuwara Eliya"],
-  "Colombo-Jaffna": ["Colombo", "Kurunegala", "Dambulla", "Anuradhapura", "Vavuniya", "Kilinochchi", "Jaffna"],
-  "Galle-Matara": ["Galle", "Unawatuna", "Weligama", "Mirissa", "Matara"],
-}
-
-const sampleResults = [
-  { id: 1, route: "Colombo - Kandy", luxury: 1000, semiLuxury: 800, expressway: 1200, ac: 1500 },
-  { id: 2, route: "Colombo - Galle", luxury: 800, semiLuxury: 600, expressway: 1000, ac: 1200 },
-  { id: 3, route: "Kandy - Nuwara Eliya", luxury: 600, semiLuxury: 500, expressway: null, ac: 800 },
-]
+const busTypes = Object.values(BusType).map(type => ({
+  id: type,
+  label: BusTypeLabels[type]
+}))
 
 export default function Home() {
+  const [routes, setRoutes] = useState<Array<{ value: string; label: string }>>([])
   const [selectedRoute, setSelectedRoute] = useState<{ value: string; label: string } | null>(null)
   const [startingCity, setStartingCity] = useState<{ value: string; label: string } | null>(null)
   const [endingCity, setEndingCity] = useState<{ value: string; label: string } | null>(null)
-  const [selectedBusTypes, setSelectedBusTypes] = useState<string[]>([])
+  const [selectedBusTypes, setSelectedBusTypes] = useState<BusType[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [results, setResults] = useState([])
-
+  const [searchResults, setSearchResults] = useState<Record<BusType, number | null> | null>(null)
   const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
 
+  // Load routes on component mount
   useEffect(() => {
-    if (selectedRoute) {
-      const cities = sampleCities[selectedRoute.value].map((city) => ({ value: city, label: city }))
-      setAvailableCities(cities)
-      setStartingCity(null)
-      setEndingCity(null)
-    } else {
-      setAvailableCities([])
+    const loadRoutes = async () => {
+      try {
+        const { routes } = await api.routes.getList()
+        setRoutes(routes.map(route => ({
+          value: route._id,
+          label: `${route.number} - ${route.name}`
+        })))
+      } catch (error) {
+        console.error('Failed to load routes:', error)
+        toast.error('Failed to load routes')
+      }
     }
+    loadRoutes()
+  }, [])
+
+  // Load cities when route is selected
+  useEffect(() => {
+    const loadCities = async () => {
+      if (selectedRoute) {
+        try {
+          const { cities } = await api.routes.getCities(selectedRoute.value)
+          setAvailableCities(cities.map(city => ({ value: city, label: city })))
+          setStartingCity(null)
+          setEndingCity(null)
+        } catch (error) {
+          console.error('Failed to load cities:', error)
+          toast.error('Failed to load cities')
+        }
+      } else {
+        setAvailableCities([])
+      }
+    }
+    loadCities()
   }, [selectedRoute])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedRoute || !startingCity || !endingCity) {
-      alert("Please select a route, starting city, and ending city.")
+      toast.error("Please select a route, starting city, and ending city.")
       return
     }
+
     setIsLoading(true)
-    setResults([])
+    setSearchResults(null)
 
-    // Simulate API call with a delay
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setResults(sampleResults)
-    setIsLoading(false)
+    try {
+      const response = await api.routes.searchFare(
+        selectedRoute.value,
+        startingCity.value,
+        endingCity.value,
+        selectedBusTypes.length > 0 ? selectedBusTypes : undefined
+      )
+      setSearchResults(response.results)
+    } catch (error) {
+      console.error('Failed to search fare:', error)
+      toast.error('Failed to search fare')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="container mx-auto max-w-2xl px-4">
       <div className="space-y-8">
         <h1 className="text-4xl font-bold text-center">Sri Lanka Bus Fare Finder</h1>
-        <p className="text-center text-muted-foreground">Find fares for over 10,000 bus routes across Sri Lanka</p>
+        <p className="text-center text-muted-foreground">Find fares for bus routes across Sri Lanka</p>
         <form onSubmit={handleSearch} className="space-y-4">
           <Select
             className="w-full"
-            options={sampleRoutes}
+            options={routes}
             value={selectedRoute}
             onChange={setSelectedRoute}
             placeholder="Select Bus Route"
@@ -116,10 +130,10 @@ export default function Home() {
                 <div key={type.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={type.id}
-                    checked={selectedBusTypes.includes(type.id)}
+                    checked={selectedBusTypes.includes(type.id as BusType)}
                     onCheckedChange={(checked) => {
                       setSelectedBusTypes(
-                        checked ? [...selectedBusTypes, type.id] : selectedBusTypes.filter((id) => id !== type.id),
+                        checked ? [...selectedBusTypes, type.id as BusType] : selectedBusTypes.filter((id) => id !== type.id),
                       )
                     }}
                   />
@@ -149,7 +163,7 @@ export default function Home() {
             <p className="mt-2">Searching for bus fares...</p>
           </div>
         )}
-        {results.length > 0 && (
+        {searchResults && (
           <div>
             <h2 className="text-2xl font-bold mb-4">
               Bus Fare from {startingCity?.label} to {endingCity?.label}
@@ -162,17 +176,12 @@ export default function Home() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Object.entries(results[0]).map(([key, value]) => {
-                  if (key !== "id" && key !== "route") {
-                    return (
-                      <TableRow key={key}>
-                        <TableCell className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1)}</TableCell>
-                        <TableCell>{value ? `Rs. ${value}` : "N/A"}</TableCell>
-                      </TableRow>
-                    )
-                  }
-                  return null
-                })}
+                {Object.entries(searchResults).map(([busType, fare]) => (
+                  <TableRow key={busType}>
+                    <TableCell className="font-medium">{BusTypeLabels[busType as BusType]}</TableCell>
+                    <TableCell>{fare !== null ? `Rs. ${fare}` : "Not Available"}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>

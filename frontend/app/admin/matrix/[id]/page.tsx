@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { PlusCircle, X, Edit2, Check, ChevronDown } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-
-const busTypes = ["Luxury", "Semi-Luxury", "Expressway", "AC"]
+import { BusType, BusTypeLabels } from "@/lib/types"
 
 // Helper functions for flat array operations
 function getFareIndex(fromIndex: number, toIndex: number, totalStops: number): number {
@@ -29,8 +28,8 @@ const sampleMatrix = {
   id: 1,
   route: "Colombo - Kandy",
   locations: {
-    Luxury: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
-    "Semi-Luxury": [
+    [BusType.LUXURY]: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
+    [BusType.SEMI_LUXURY]: [
       "Colombo Fort",
       "Maradana",
       "Kelaniya",
@@ -42,8 +41,8 @@ const sampleMatrix = {
       "Peradeniya",
       "Kandy",
     ],
-    Expressway: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
-    AC: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
+    [BusType.EXPRESSWAY]: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
+    [BusType.AC]: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
   }
 }
 
@@ -54,13 +53,13 @@ interface FareMatrix {
 export default function MatrixPage() {
   const params = useParams()
   const matrixId = params.id
-  const [activeTab, setActiveTab] = useState(busTypes[0])
+  const [activeTab, setActiveTab] = useState<BusType>(BusType.LUXURY)
   const [matrix, setMatrix] = useState(sampleMatrix)
   const [fares, setFares] = useState<FareMatrix>(() => {
     // Initialize empty fare arrays for each bus type
     const initial: FareMatrix = {};
-    busTypes.forEach(type => {
-      const numStops = sampleMatrix.locations[type].length;
+    Object.values(BusType).forEach(type => {
+      const numStops = sampleMatrix.locations[type]?.length || 0;
       initial[type] = new Array(calculateFareArraySize(numStops)).fill(0);
     });
     return initial;
@@ -69,9 +68,10 @@ export default function MatrixPage() {
   const [editableLocations, setEditableLocations] = useState(matrix.locations)
   const [newLocation, setNewLocation] = useState("")
   const [addingAtIndex, setAddingAtIndex] = useState<number | null>(null)
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false)
 
   const handleFareChange = (fromIndex: number, toIndex: number, value: string) => {
-    const fareIndex = getFareIndex(fromIndex, toIndex, editableLocations[activeTab].length);
+    const fareIndex = getFareIndex(fromIndex, toIndex, editableLocations[activeTab]?.length || 0);
     if (fareIndex === -1) return;
 
     setFares(prev => ({
@@ -83,7 +83,7 @@ export default function MatrixPage() {
   }
 
   const getFare = (fromIndex: number, toIndex: number): string => {
-    const fareIndex = getFareIndex(fromIndex, toIndex, editableLocations[activeTab].length);
+    const fareIndex = getFareIndex(fromIndex, toIndex, editableLocations[activeTab]?.length || 0);
     if (fareIndex === -1) return "";
     return fares[activeTab][fareIndex].toString();
   }
@@ -100,9 +100,9 @@ export default function MatrixPage() {
   }
 
   const handleAddLocation = (index: number | null) => {
-    if (newLocation && !editableLocations[activeTab].includes(newLocation)) {
+    if (newLocation && !editableLocations[activeTab]?.includes(newLocation)) {
       const updatedLocations = { ...editableLocations }
-      const oldStops = updatedLocations[activeTab];
+      const oldStops = updatedLocations[activeTab] || [];
       
       if (index === null) {
         updatedLocations[activeTab] = [...oldStops, newLocation]
@@ -136,7 +136,7 @@ export default function MatrixPage() {
 
   const handleRemoveLocation = (location: string) => {
     const updatedLocations = { ...editableLocations }
-    const oldStops = updatedLocations[activeTab];
+    const oldStops = updatedLocations[activeTab] || [];
     const removeIndex = oldStops.indexOf(location);
     
     updatedLocations[activeTab] = oldStops.filter((loc) => loc !== location);
@@ -176,16 +176,15 @@ export default function MatrixPage() {
         <h1 className="text-3xl font-bold mb-6">Fare Matrix: {matrix.route}</h1>
 
         <div className="mb-4 flex space-x-2">
-          {busTypes.map((type) => (
+          {Object.values(BusType).map((type) => (
             <Button key={type} variant={activeTab === type ? "default" : "outline"} onClick={() => setActiveTab(type)}>
-              {type}
+              {BusTypeLabels[type]}
             </Button>
           ))}
         </div>
 
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-xl font-semibold">Stops for {activeTab}</h2>
+          <div className="flex justify-end mb-2">
             <Button
               variant="outline"
               size="sm"
@@ -197,11 +196,11 @@ export default function MatrixPage() {
               }}
             >
               {isEditingLocations ? <Check className="h-4 w-4 mr-2" /> : <Edit2 className="h-4 w-4 mr-2" />}
-              {isEditingLocations ? "Save" : "Edit"}
+              {isEditingLocations ? "Save" : "Edit Stops"}
             </Button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {editableLocations[activeTab].map((location, index) => (
+            {editableLocations[activeTab]?.map((location, index) => (
               <div
                 key={location}
                 className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm flex items-center"
@@ -230,7 +229,7 @@ export default function MatrixPage() {
                 )}
               </div>
             ))}
-            {isEditingLocations && (editableLocations[activeTab].length === 0 || addingAtIndex !== null) && (
+            {isEditingLocations && (!editableLocations[activeTab]?.length || addingAtIndex !== null) && (
               <div className="flex items-center">
                 <Input
                   type="text"
@@ -252,13 +251,13 @@ export default function MatrixPage() {
           </div>
         </div>
 
-        {editableLocations[activeTab].length > 0 && (
+        {editableLocations[activeTab]?.length > 0 && (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-40 text-right">To \ From</TableHead>
-                  {editableLocations[activeTab].slice(0, -1).map((location, index) => (
+                  {editableLocations[activeTab]?.slice(0, -1).map((location, index) => (
                     <TableHead key={location} className="w-40">
                       {location}
                     </TableHead>
@@ -266,10 +265,10 @@ export default function MatrixPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {editableLocations[activeTab].slice(1).map((toLocation, rowIndex) => (
+                {editableLocations[activeTab]?.slice(1).map((toLocation, rowIndex) => (
                   <TableRow key={toLocation}>
                     <TableCell className="font-medium text-right">{toLocation}</TableCell>
-                    {editableLocations[activeTab].slice(0, -1).map((fromLocation, colIndex) => (
+                    {editableLocations[activeTab]?.slice(0, -1).map((fromLocation, colIndex) => (
                       <TableCell key={fromLocation}>
                         {colIndex <= rowIndex ? (
                           <Input

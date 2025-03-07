@@ -90,7 +90,7 @@ export default function Home() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl px-4">
+    <div className="container mt-8 mx-auto max-w-2xl px-4">
       <div className="space-y-8">
         <h1 className="text-4xl font-bold text-center">Sri Lanka Bus Fare Finder</h1>
         <p className="text-center text-muted-foreground">Find fares for bus routes across Sri Lanka</p>

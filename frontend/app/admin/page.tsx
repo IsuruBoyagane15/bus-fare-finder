@@ -34,15 +34,18 @@ export default function AdminDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
 
   useEffect(() => {
+    if (authLoading) return;
+    
     if (!isAuthenticated) {
       router.push('/admin/login')
       return
     }
+    
     loadRoutes()
-  }, [isAuthenticated])
+  }, [isAuthenticated, authLoading])
 
   const loadRoutes = async () => {
     try {

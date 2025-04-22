@@ -4,6 +4,7 @@
   "description": "Bus Fare Finder Backend API",
   "main": "src/index.js",
   "scripts": {
+    "build": "echo 'No build needed'",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "seed:admin": "node src/scripts/seedAdmin.js"

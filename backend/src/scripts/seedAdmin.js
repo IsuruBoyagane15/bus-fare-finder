@@ -10,7 +10,7 @@ const seedAdmin = async () => {
     });
 
     // Check if admin already exists
-    const existingAdmin = await Admin.findOne({ email: 'admin@busfinder.com' });
+    const existingAdmin = await Admin.findOne({ email: process.env.ADMIN_USER_NAME });
     if (existingAdmin) {
       console.log('Admin user already exists');
       process.exit(0);
@@ -18,8 +18,8 @@ const seedAdmin = async () => {
 
     // Create default admin
     const admin = new Admin({
-      email: 'admin@busfinder.com',
-      password: 'admin123' // This will be hashed automatically by the model
+      email: process.env.ADMIN_USER_NAME,
+      password: process.env.ADMIN_USER_PASSWORD // This will be hashed automatically by the model
     });
 
     await admin.save();

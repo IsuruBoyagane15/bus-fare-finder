@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
+const logger = require('../logger/logger');
 
 // Admin login
 router.post('/login', async (req, res) => {
@@ -18,12 +19,14 @@ router.post('/login', async (req, res) => {
     if (!admin) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    logger.info(`admin [${email.toLowerCase()}] exists.`)
 
     // Check password
     const isMatch = await admin.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    logger.info(`admin [${email.toLowerCase()}] authenticated.`)
 
     // Generate JWT
     const token = jwt.sign(
@@ -40,7 +43,8 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    logger.error(`Internal server error. ${error}`)
+    res.status(500).json({ message: 'Server error :' + error });
   }
 });
 

@@ -1,6 +1,6 @@
 import { Route, BusType } from './types';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'https://transitlk-f4ya5zx3ta-uc.a.run.app/api';
 
 interface CreateRoutePayload {
   number: string;

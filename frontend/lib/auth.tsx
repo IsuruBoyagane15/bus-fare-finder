@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('http://localhost:5001/api/auth/login', {
+      const response = await fetch('https://transitlk-f4ya5zx3ta-uc.a.run.app/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

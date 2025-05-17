@@ -93,7 +93,7 @@ router.post('/search-fare', validateSearchFareRequest, async (req, res) => {
       : route.busTypes;
 
     // Define valid bus types (this should ideally come from a constant or enum)
-    const validBusTypes = ['LUXURY', 'SEMI_LUXURY', 'EXPRESSWAY', 'AC'];
+    const validBusTypes = ['SUPER_LUXURY', 'LUXURY', 'SEMI_LUXURY', 'NORMAL'];
     
     // Check for completely invalid bus types
     const invalidBusTypes = requestedBusTypes.filter(type => !validBusTypes.includes(type));

@@ -1,15 +1,15 @@
 export enum BusType {
+  SUPER_LUXURY = 'SUPER_LUXURY',
   LUXURY = 'LUXURY',
   SEMI_LUXURY = 'SEMI_LUXURY',
-  EXPRESSWAY = 'EXPRESSWAY',
-  AC = 'AC'
+  NORMAL = 'NORMAL'
 }
 
 export const BusTypeLabels: Record<BusType, string> = {
+  [BusType.SUPER_LUXURY] : 'Super Luxury',
   [BusType.LUXURY]: 'Luxury',
   [BusType.SEMI_LUXURY]: 'Semi Luxury',
-  [BusType.EXPRESSWAY]: 'Expressway',
-  [BusType.AC]: 'AC'
+  [BusType.NORMAL]: 'Normal',
 }
 
 export interface Route {

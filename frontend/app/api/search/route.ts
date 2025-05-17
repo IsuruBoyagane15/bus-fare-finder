@@ -4,10 +4,10 @@ import { BusType } from "@/lib/types"
 interface RouteResult {
   id: number;
   route: string;
+  [BusType.SUPER_LUXURY]?: number;
   [BusType.LUXURY]?: number;
   [BusType.SEMI_LUXURY]?: number;
-  [BusType.EXPRESSWAY]?: number;
-  [BusType.AC]?: number;
+  [BusType.NORMAL]?: number;
 }
 
 export async function GET(request: Request) {
@@ -19,11 +19,11 @@ export async function GET(request: Request) {
 
   // Simulate a database search
   const routes: RouteResult[] = [
-    { id: 1, route: "Colombo - Kandy", [BusType.LUXURY]: 1000, [BusType.SEMI_LUXURY]: 800, [BusType.EXPRESSWAY]: 1200, [BusType.AC]: 1500 },
-    { id: 2, route: "Colombo - Galle", [BusType.LUXURY]: 800, [BusType.SEMI_LUXURY]: 600, [BusType.EXPRESSWAY]: 1000, [BusType.AC]: 1200 },
-    { id: 3, route: "Kandy - Nuwara Eliya", [BusType.LUXURY]: 600, [BusType.SEMI_LUXURY]: 500, [BusType.AC]: 800 },
-    { id: 4, route: "Colombo - Jaffna", [BusType.LUXURY]: 2000, [BusType.SEMI_LUXURY]: 1800, [BusType.EXPRESSWAY]: 2500, [BusType.AC]: 2800 },
-    { id: 5, route: "Galle - Matara", [BusType.LUXURY]: 300, [BusType.SEMI_LUXURY]: 250, [BusType.AC]: 400 },
+    { id: 1, route: "Colombo - Kandy", [BusType.LUXURY]: 1000, [BusType.SEMI_LUXURY]: 800, [BusType.NORMAL]: 1500 },
+    { id: 2, route: "Colombo - Galle", [BusType.SUPER_LUXURY]: 800, [BusType.SEMI_LUXURY]: 600, [BusType.NORMAL]: 1200 },
+    { id: 3, route: "Kandy - Nuwara Eliya", [BusType.SUPER_LUXURY]: 600, [BusType.LUXURY]: 500, [BusType.NORMAL]: 800 },
+    { id: 4, route: "Colombo - Jaffna", [BusType.LUXURY]: 2000, [BusType.SEMI_LUXURY]: 1800, [BusType.NORMAL]: 2800 },
+    { id: 5, route: "Galle - Matara", [BusType.LUXURY]: 300, [BusType.SEMI_LUXURY]: 250, [BusType.NORMAL]: 400 },
   ]
 
   const results = routes.filter((route) => {

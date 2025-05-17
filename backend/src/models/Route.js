@@ -17,7 +17,7 @@ const routeSchema = new mongoose.Schema({
   },
   busTypes: [{
     type: String,
-    enum: ['LUXURY', 'SEMI_LUXURY', 'EXPRESSWAY', 'AC']
+    enum: ['SUPER_LUXURY', 'LUXURY', 'SEMI_LUXURY', 'NORMAL']
   }],
   locations: {
     type: Map,

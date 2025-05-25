@@ -28,6 +28,7 @@ const sampleMatrix = {
   id: 1,
   route: "Colombo - Kandy",
   locations: {
+    [BusType.SUPER_LUXURY]: ["Colombo Fort", "Kadawatha", "Kandy"],
     [BusType.LUXURY]: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
     [BusType.SEMI_LUXURY]: [
       "Colombo Fort",
@@ -41,8 +42,7 @@ const sampleMatrix = {
       "Peradeniya",
       "Kandy",
     ],
-    [BusType.EXPRESSWAY]: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
-    [BusType.AC]: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
+    [BusType.NORMAL]: ["Colombo Fort", "Kadawatha", "Kegalle", "Kandy"],
   }
 }
 
